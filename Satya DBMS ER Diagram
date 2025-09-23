@@ -1,0 +1,76 @@
+-- Creating the 'Student' table
+CREATE TABLE Student (
+    StudentID INT PRIMARY KEY,
+    Lname VARCHAR(50),
+    Fname VARCHAR(50),
+    UID VARCHAR(20),
+    EmailID VARCHAR(100),
+    PhoneNo VARCHAR(15),
+    CourseID INT
+);
+
+-- Creating the 'Professor' table
+CREATE TABLE Professor (
+    ProfID INT PRIMARY KEY,
+    ProfName VARCHAR(100)
+);
+
+-- Creating the 'Courses' table
+CREATE TABLE Courses (
+    CourseID INT PRIMARY KEY,
+    CourseName VARCHAR(100),
+    ProfID INT,
+    FOREIGN KEY (ProfID) REFERENCES Professor(ProfID)
+);
+
+-- Creating the 'Advisor' table
+CREATE TABLE Advisor (
+    StudentID INT,
+    CourseID INT,
+    ProfName VARCHAR(100),
+    FOREIGN KEY (StudentID) REFERENCES Student(StudentID),
+    FOREIGN KEY (CourseID) REFERENCES Courses(CourseID)
+);
+
+-- Creating the 'Registrar' table
+CREATE TABLE Registrar (
+    StudentID INT,
+    DateOfConfirmation DATE,
+    Activity VARCHAR(50), -- Could be Add, Delete, Archive
+    CourseID INT,
+    FOREIGN KEY (StudentID) REFERENCES Student(StudentID),
+    FOREIGN KEY (CourseID) REFERENCES Courses(CourseID)
+);
+
+-- Creating the 'Login' table (Could be used for user authentication)
+CREATE TABLE Login (
+    StudentID INT PRIMARY KEY,
+    LoginID VARCHAR(50), -- Unique identifier for login
+    Password VARCHAR(50), -- Password field (hashed)
+    FOREIGN KEY (StudentID) REFERENCES Student(StudentID)
+);
+
+-- Sample Data Insertion (Optional)
+-- Inserting a student
+INSERT INTO Student (StudentID, Lname, Fname, UID, EmailID, PhoneNo, CourseID)
+VALUES (1, 'Doe', 'John', 'UID123', 'john.doe@example.com', '1234567890', 101);
+
+-- Inserting a professor
+INSERT INTO Professor (ProfID, ProfName)
+VALUES (1, 'Dr. Smith');
+
+-- Inserting a course
+INSERT INTO Courses (CourseID, CourseName, ProfID)
+VALUES (101, 'Database Systems', 1);
+
+-- Inserting advisor data
+INSERT INTO Advisor (StudentID, CourseID, ProfName)
+VALUES (1, 101, 'Dr. Smith');
+
+-- Inserting registrar data
+INSERT INTO Registrar (StudentID, DateOfConfirmation, Activity, CourseID)
+VALUES (1, '2025-09-23', 'Register', 101);
+
+-- Inserting login data
+INSERT INTO Login (StudentID, LoginID, Password)
+VALUES (1, 'john_doe_login', 'hashed_password_example');
