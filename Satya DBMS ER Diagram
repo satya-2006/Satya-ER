@@ -1,76 +1,125 @@
--- Creating the 'Student' table
-CREATE TABLE Student (
-    StudentID INT PRIMARY KEY,
-    Lname VARCHAR(50),
-    Fname VARCHAR(50),
-    UID VARCHAR(20),
-    EmailID VARCHAR(100),
-    PhoneNo VARCHAR(15),
-    CourseID INT
+-- =========================
+-- UNIVERSITY MANAGEMENT DB
+-- =========================
+
+CREATE TABLE Departments (
+    dept_id INT PRIMARY KEY AUTO_INCREMENT,
+    dept_name VARCHAR(200) NOT NULL UNIQUE
 );
 
--- Creating the 'Professor' table
-CREATE TABLE Professor (
-    ProfID INT PRIMARY KEY,
-    ProfName VARCHAR(100)
+CREATE TABLE Teachers (
+    teacher_id INT PRIMARY KEY AUTO_INCREMENT,
+    teacher_name VARCHAR(200) NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    phone_number VARCHAR(15),
+    dept_id INT,
+    FOREIGN KEY (dept_id) REFERENCES Departments(dept_id)
 );
 
--- Creating the 'Courses' table
+CREATE TABLE Students (
+    student_id INT PRIMARY KEY AUTO_INCREMENT,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    phone_number VARCHAR(15),
+    enrollment_year YEAR NOT NULL,
+    dept_id INT,
+    address TEXT,
+    FOREIGN KEY (dept_id) REFERENCES Departments(dept_id)
+);
+
+CREATE TABLE Logins (
+    login_id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id INT,
+    teacher_id INT,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role ENUM('Student','Teacher') NOT NULL,
+    FOREIGN KEY (student_id) REFERENCES Students(student_id) ON DELETE CASCADE,
+    FOREIGN KEY (teacher_id) REFERENCES Teachers(teacher_id) ON DELETE CASCADE
+);
+
 CREATE TABLE Courses (
-    CourseID INT PRIMARY KEY,
-    CourseName VARCHAR(100),
-    ProfID INT,
-    FOREIGN KEY (ProfID) REFERENCES Professor(ProfID)
+    course_id INT PRIMARY KEY AUTO_INCREMENT,
+    course_name VARCHAR(200) NOT NULL,
+    credits INT NOT NULL,
+    dept_id INT,
+    teacher_id INT,
+    year_offered YEAR,
+    FOREIGN KEY (dept_id) REFERENCES Departments(dept_id),
+    FOREIGN KEY (teacher_id) REFERENCES Teachers(teacher_id)
 );
 
--- Creating the 'Advisor' table
-CREATE TABLE Advisor (
-    StudentID INT,
-    CourseID INT,
-    ProfName VARCHAR(100),
-    FOREIGN KEY (StudentID) REFERENCES Student(StudentID),
-    FOREIGN KEY (CourseID) REFERENCES Courses(CourseID)
+CREATE TABLE Enrollments (
+    enrollment_id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id INT NOT NULL,
+    course_id INT NOT NULL,
+    enrollment_date DATE NOT NULL,
+    grade VARCHAR(2),
+    FOREIGN KEY (student_id) REFERENCES Students(student_id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES Courses(course_id) ON DELETE CASCADE
 );
 
--- Creating the 'Registrar' table
-CREATE TABLE Registrar (
-    StudentID INT,
-    DateOfConfirmation DATE,
-    Activity VARCHAR(50), -- Could be Add, Delete, Archive
-    CourseID INT,
-    FOREIGN KEY (StudentID) REFERENCES Student(StudentID),
-    FOREIGN KEY (CourseID) REFERENCES Courses(CourseID)
+CREATE TABLE Payments (
+    payment_id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id INT NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    payment_date DATE NOT NULL,
+    status ENUM('Pending','Completed') DEFAULT 'Pending',
+    FOREIGN KEY (student_id) REFERENCES Students(student_id)
 );
 
--- Creating the 'Login' table (Could be used for user authentication)
-CREATE TABLE Login (
-    StudentID INT PRIMARY KEY,
-    LoginID VARCHAR(50), -- Unique identifier for login
-    Password VARCHAR(50), -- Password field (hashed)
-    FOREIGN KEY (StudentID) REFERENCES Student(StudentID)
-);
+-- =========================
+-- INSERT SAMPLE DATA
+-- =========================
 
--- Sample Data Insertion (Optional)
--- Inserting a student
-INSERT INTO Student (StudentID, Lname, Fname, UID, EmailID, PhoneNo, CourseID)
-VALUES (1, 'Doe', 'John', 'UID123', 'john.doe@example.com', '1234567890', 101);
+-- Departments
+INSERT INTO Departments (dept_name) VALUES
+('Computer Science'), ('Mechanical Engineering'), ('Electrical Engineering'), ('Business Administration');
+SELECT * FROM Departments;
 
--- Inserting a professor
-INSERT INTO Professor (ProfID, ProfName)
-VALUES (1, 'Dr. Smith');
+-- Teachers
+INSERT INTO Teachers (teacher_name, email, phone_number, dept_id) VALUES
+('Dr. Asha Mehta', 'asha.mehta@univ.com', '9876500001', 1),
+('Prof. Ramesh Rao', 'ramesh.rao@univ.com', '9876500002', 2),
+('Dr. Kavita Sharma', 'kavita.sharma@univ.com', '9876500003', 3),
+('Prof. Vikram Jain', 'vikram.jain@univ.com', '9876500004', 4);
+SELECT * FROM Teachers;
 
--- Inserting a course
-INSERT INTO Courses (CourseID, CourseName, ProfID)
-VALUES (101, 'Database Systems', 1);
+-- Students
+INSERT INTO Students (first_name, last_name, email, phone_number, enrollment_year, dept_id, address) VALUES
+('Rahul', 'Verma', 'rahul.verma@stu.univ.com', '9876501001', 2023, 1, 'Sector 45, Chandigarh'),
+('Sneha', 'Patil', 'sneha.patil@stu.univ.com', '9876501002', 2024, 2, 'Kothrud, Pune'),
+('Aman', 'Gupta', 'aman.gupta@stu.univ.com', '9876501003', 2022, 3, 'Indira Nagar, Lucknow');
+SELECT * FROM Students;
 
--- Inserting advisor data
-INSERT INTO Advisor (StudentID, CourseID, ProfName)
-VALUES (1, 101, 'Dr. Smith');
+-- Logins
+INSERT INTO Logins (student_id, teacher_id, username, password, role) VALUES
+(1, NULL, 'rahulv', 'pass123', 'Student'),
+(2, NULL, 'snehap', 'pass234', 'Student'),
+(3, NULL, 'amang', 'pass345', 'Student'),
+(NULL, 1, 'asha.m', 'teach123', 'Teacher'),
+(NULL, 2, 'ramesh.r', 'teach234', 'Teacher');
+SELECT * FROM Logins;
 
--- Inserting registrar data
-INSERT INTO Registrar (StudentID, DateOfConfirmation, Activity, CourseID)
-VALUES (1, '2025-09-23', 'Register', 101);
+-- Courses
+INSERT INTO Courses (course_name, credits, dept_id, teacher_id, year_offered) VALUES
+('Data Structures', 4, 1, 1, 2025),
+('Thermodynamics', 3, 2, 2, 2025),
+('Power Systems', 4, 3, 3, 2025),
+('Financial Accounting', 3, 4, 4, 2025);
+SELECT * FROM Courses;
 
--- Inserting login data
-INSERT INTO Login (StudentID, LoginID, Password)
-VALUES (1, 'john_doe_login', 'hashed_password_example');
+-- Enrollments
+INSERT INTO Enrollments (student_id, course_id, enrollment_date, grade) VALUES
+(1, 1, '2025-07-01', 'A'),
+(2, 2, '2025-07-05', NULL),
+(3, 3, '2025-07-10', 'B');
+SELECT * FROM Enrollments;
+
+-- Payments
+INSERT INTO Payments (student_id, amount, payment_date, status) VALUES
+(1, 50000.00, '2025-08-01', 'Completed'),
+(2, 45000.00, '2025-08-10', 'Pending'),
+(3, 47000.00, '2025-07-20', 'Completed');
+SELECT * FROM Payments;
